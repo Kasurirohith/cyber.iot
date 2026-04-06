@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CyberShield Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI';
+    background: #f4f6f9;
+    transition: 0.3s;
+}
+
+body.dark {
+    background: #0f172a;
+    color: white;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background: #081b29;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 20px;
+}
+
+.sidebar h2 {
+    color: #00abf0;
+}
+
+/* 🔥 CLEAN SIDEBAR LINKS */
+.sidebar a {
+    display: block;
+    margin: 15px 0;
+    color: white;
+    text-decoration: none;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+.sidebar a:visited {
+    color: white;
+}
+
+.sidebar a:hover {
+    background: #00abf0;
+}
+
+/* DARK MODE SAFE */
+body.dark .sidebar {
+    background: #081b29;
+}
+
+body.dark .sidebar a {
+    color: white;
+}
+
+/* TOPBAR */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 220px;
+    right: 0;
+    height: 50px;
+    background: #081b29;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+}
+
+/* MAIN */
+.main {
+    margin-left: 240px;
+    margin-top: 70px;
+    padding: 20px;
+}
+
+/* CARDS */
+.cards {
+    display: flex;
+    gap: 20px;
+}
+
+.card {
+    flex: 1;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+body.dark .card {
+    background: #1e293b;
+}
+
+/* CHART */
+.chart-box {
+    width: 300px;
+    height: 300px;
+    margin: 30px auto;
+}
+
+/* TABLE */
+table {
+    width: 100%;
+    margin-top: 20px;
+    background: white;
+    border-collapse: collapse;
+}
+
+body.dark table {
+    background: #1e293b;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+th {
+    background: #00abf0;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>CyberShield</h2>
+    <a href="index.html">🏠 Home</a>
+    <a href="dashboard.html">📊 Dashboard</a>
+</div>
+
+<div class="topbar">
+    System Active 🟢 | CyberShield Monitoring
+</div>
+
+<div class="main">
+
+<!-- HEADER -->
+<div style="background: linear-gradient(135deg, #A1CCA6, #81b29a); padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+    <h1 style="margin:0; color:#081b29;">Security Dashboard</h1>
+</div>
+
+<button onclick="toggleDark()" style="margin-bottom:15px;">🌙 Dark Mode</button>
+
+<div class="cards">
+    <div class="card">
+        <h2 id="total">0</h2>
+        <p>Total Requests</p>
+    </div>
+
+    <div class="card">
+        <h2 id="normal">0</h2>
+        <p>Normal Traffic</p>
+    </div>
+
+    <div class="card">
+        <h2 id="attack">0</h2>
+        <p>Attacks Detected</p>
+    </div>
+</div>
+
+<div class="chart-box">
+    <canvas id="chart"></canvas>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody id="logs"></tbody>
+</table>
+
+</div>
+
+<script>
+let chart;
+
+function loadDashboard() {
+    fetch("http://127.0.0.1:5000/logs")
+    .then(res => res.json())
+    .then(data => {
+
+        let total = data.length;
+        let normal = data.filter(x => x.result === 0).length;
+        let attack = data.filter(x => x.result === 1).length;
+
+        document.getElementById("total").innerText = total;
+        document.getElementById("normal").innerText = normal;
+        document.getElementById("attack").innerText = attack;
+
+        let table = document.getElementById("logs");
+        table.innerHTML = "";
+
+        data.forEach(log => {
+            table.innerHTML += `
+                <tr>
+                    <td>${log.input}</td>
+                    <td style="color:${log.result ? 'red' : 'green'}">
+                        ${log.result ? '🚨 Attack' : '✅ Normal'}
+                    </td>
+                </tr>
+            `;
+        });
+
+        let ctx = document.getElementById("chart").getContext("2d");
+
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Normal', 'Attack'],
+                datasets: [{
+                    data: [normal, attack],
+                    backgroundColor: ['green', 'red']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+    });
+}
+
+loadDashboard();
+setInterval(loadDashboard, 2000);
+
+function toggleDark(){
+    document.body.classList.toggle("dark");
+}
+</script>
+
+</body>
+</html>

@@ -1,1 +1,1 @@
-# cyber.iot
+venv\Scripts\activate

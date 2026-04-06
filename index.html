@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CyberShield</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI';
+    background: #f4f6f9;
+}
+
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background: #081b29;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 20px;
+}
+
+.sidebar h2 {
+    color: #00abf0;
+}
+
+.sidebar a {
+    display: block;
+    margin: 15px 0;
+    color: white;
+    text-decoration: none;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.sidebar a:hover {
+    background: #00abf0;
+}
+
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 220px;
+    right: 0;
+    height: 50px;
+    background: #081b29;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    z-index: 1000;
+}
+
+.main {
+    margin-left: 240px;
+    margin-top: 70px;
+    padding: 20px;
+}
+
+.card {
+    width: 500px;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    border-radius: 8px;
+    border: 2px solid #00abf0;
+}
+
+button {
+    margin-top: 15px;
+    padding: 12px 20px;
+    background: #00abf0;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    color: white;
+}
+
+button:hover {
+    background: #007acc;
+}
+
+#result {
+    margin-top: 10px;
+    font-size: 18px;
+}
+
+#alertBox {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    display: none;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>CyberShield</h2>
+    <a href="index.html">🏠 Home</a>
+    <a href="dashboard.html">📊 Dashboard</a>
+</div>
+
+<div class="topbar">
+    System Active 🟢 | CyberShield Monitoring
+</div>
+
+<div class="main">
+
+    <!-- HEADER -->
+    <div style="background: linear-gradient(135deg, #A1CCA6, #81b29a); padding: 20px 25px; border-radius: 10px; margin-bottom: 25px;">
+        <h1 style="margin:0; color:#081b29;">Network Traffic Analysis</h1>
+    </div>
+
+    <div class="card">
+        <h2>Enter Network Data</h2>
+
+        <input type="text" id="data" placeholder="Enter: 10,20,30">
+
+        <button onclick="sendData()">Analyze</button>
+
+        <!-- 🔥 NEW TOGGLE BUTTON -->
+        <button onclick="toggleAuto()" id="toggleBtn">Auto Mode: ON</button>
+
+        <p><b>Result:</b></p>
+        <p id="result"></p>
+
+        <p><b>System Alert:</b></p>
+        <div id="alertBox"></div>
+
+        <div style="margin-top:20px; font-size:14px;">
+            <b>Model:</b> Random Forest |
+            <b>Dataset:</b> NSL-KDD |
+            <b>Accuracy:</b> 92%
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+function sendData() {
+    let result=document.getElementById("result");
+    result.innerHTML="Analyzing...";
+    result.style.color="black";
+
+    let values = document.getElementById("data").value.split(",").map(Number);
+
+    fetch("http://127.0.0.1:5000/predict", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({features:values})
+    })
+    .then(res=>res.json())
+    .then(data=>{
+        let alertBox=document.getElementById("alertBox");
+
+        if(data.result===1){
+            result.innerHTML="🚨 Attack Detected";
+            result.style.color="red";
+
+            alertBox.style.display="block";
+            alertBox.style.background="red";
+            alertBox.style.color="white";
+            alertBox.innerHTML="⚠️ High Risk Traffic Detected!";
+        } else {
+            result.innerHTML="✅ Normal Traffic";
+            result.style.color="green";
+
+            alertBox.style.display="block";
+            alertBox.style.background="green";
+            alertBox.style.color="white";
+            alertBox.innerHTML="System Secure ✔";
+        }
+
+        result.innerHTML += `<br>Confidence: ${data.confidence || "N/A"} | Time: ${data.time}`;
+    });
+}
+
+/* 🔥 AUTO MODE CONTROL */
+let autoMode = true;
+let interval;
+
+function autoGenerate(){
+    let v1=Math.floor(Math.random()*100);
+    let v2=Math.floor(Math.random()*100);
+    let v3=Math.floor(Math.random()*100);
+
+    document.getElementById("data").value=`${v1},${v2},${v3}`;
+}
+
+function toggleAuto(){
+    let btn = document.getElementById("toggleBtn");
+
+    if(autoMode){
+        clearInterval(interval);
+        autoMode = false;
+        btn.innerText = "Auto Mode: OFF";
+        btn.style.background = "gray";
+    } else {
+        interval = setInterval(autoGenerate,4000);
+        autoMode = true;
+        btn.innerText = "Auto Mode: ON";
+        btn.style.background = "#00abf0";
+    }
+}
+
+/* START AUTO MODE */
+interval = setInterval(autoGenerate,4000);
+
+</script>
+</body>
+</html>
